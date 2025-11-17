@@ -1409,12 +1409,22 @@ body {
 }
 
 .profissional-foto {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid var(--primary-color);
+    width: 120px;             
+    height: 120px;
+    aspect-ratio: 1 / 1;     
+    border-radius: 50%;      
+    object-fit: cover;         
+    border: 4px solid var(--primary-color);
+    display: block;
+    margin: 0 auto;           
 }
+.img_profissional{
+    
+    object-fit: cover;     
+    border-radius: 50%;
+
+}
+
 
 .profissional-detalhes h1 {
     margin: 0 0 0.5rem 0;
@@ -1574,7 +1584,7 @@ body {
     background: var(--bg-secondary);
     border-radius: var(--border-radius);
     padding: 2rem;
-    margin-bottom: 2rem;
+     margin-bottom: 20px;
     box-shadow: var(--shadow-md);
     display: flex;
     justify-content: space-between;
@@ -1588,11 +1598,12 @@ body {
 }
 
 .profile-foto {
-    width: 100px;
-    height: 100px;
+ width: 120px;
+    height: 120px;
     border-radius: 50%;
+    margin-right: 20px;
     object-fit: cover;
-    border: 4px solid var(--primary-color);
+    border: 3px solid #1B4965;
 }
 
 .profile-info h1 {
@@ -2003,3 +2014,7 @@ body {
         max-width: 200px;
     }
 }
+
+
+
+
