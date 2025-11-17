@@ -87,3 +87,11 @@ CREATE INDEX idx_profissionais_disponivel ON profissionais(disponivel);
 CREATE INDEX idx_avaliacoes_profissional ON avaliacoes(profissional_id);
 CREATE INDEX idx_avaliacoes_status ON avaliacoes(status);
 CREATE INDEX idx_avaliacoes_data ON avaliacoes(data_avaliacao);
+
+ALTER TABLE profissionais
+ADD COLUMN media_avaliacao DECIMAL(3,2) DEFAULT 0.00 AFTER total_avaliacoes;
+UPDATE profissionais SET media_avaliacao = (
+    SELECT AVG(nota)
+    FROM avaliacoes
+    WHERE profissional_id = profissionais.id AND status = 'aprovada'
+);
