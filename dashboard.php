@@ -17,10 +17,10 @@ $estatisticas = [];
 
 try {
     $db = getDatabase();
-    
+
     // Buscar dados do profissional
     $profissional = dbFetchOne("SELECT * FROM profissionais WHERE id = ?", [$profissional_id]);
-    
+
     // Buscar avaliações
     $avaliacoes = $db->query("
         SELECT * FROM avaliacoes 
@@ -28,17 +28,28 @@ try {
         ORDER BY data_avaliacao DESC 
         LIMIT 10
     ")->fetchAll();
-    
+
     // Buscar estatísticas
+    $total_avaliacoes = dbFetchValue("SELECT COUNT(*) FROM avaliacoes WHERE profissional_id = ?", [$profissional_id]);
+    $media_nota = dbFetchValue("SELECT AVG(nota) FROM avaliacoes WHERE profissional_id = ? AND status = 'aprovada'", [$profissional_id]);
+    $avaliacoes_5_estrelas = dbFetchValue("SELECT COUNT(*) FROM avaliacoes WHERE profissional_id = ? AND nota = 5", [$profissional_id]);
+    $avaliacoes_1_estrela = dbFetchValue("SELECT COUNT(*) FROM avaliacoes WHERE profissional_id = ? AND nota = 1", [$profissional_id]);
+
     $estatisticas = [
-        'total_avaliacoes' => dbFetchValue("SELECT COUNT(*) FROM avaliacoes WHERE profissional_id = ?", [$profissional_id]),
-        'media_nota' => dbFetchValue("SELECT AVG(nota) FROM avaliacoes WHERE profissional_id = ? AND status = 'aprovada'", [$profissional_id]) ?: 0,
-        'avaliacoes_5_estrelas' => dbFetchValue("SELECT COUNT(*) FROM avaliacoes WHERE profissional_id = ? AND nota = 5", [$profissional_id]),
-        'avaliacoes_1_estrela' => dbFetchValue("SELECT COUNT(*) FROM avaliacoes WHERE profissional_id = ? AND nota = 1", [$profissional_id])
+        'total_avaliacoes' => $total_avaliacoes !== false ? (int)$total_avaliacoes : 0,
+        'media_nota' => $media_nota !== false ? (float)$media_nota : 0,
+        'avaliacoes_5_estrelas' => $avaliacoes_5_estrelas !== false ? (int)$avaliacoes_5_estrelas : 0,
+        'avaliacoes_1_estrela' => $avaliacoes_1_estrela !== false ? (int)$avaliacoes_1_estrela : 0
     ];
-    
 } catch (Exception $e) {
     error_log("Erro no dashboard: " . $e->getMessage());
+    // Definir valores padrão caso ocorra erro
+    $estatisticas = [
+        'total_avaliacoes' => 0,
+        'media_nota' => 0,
+        'avaliacoes_5_estrelas' => 0,
+        'avaliacoes_1_estrela' => 0
+    ];
 }
 
 // Logout
@@ -51,22 +62,25 @@ if (isset($_GET['logout'])) {
 
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - <?= htmlspecialchars($profissional['nome']) ?> - ZelaLar</title>
     <meta name="description" content="Gerencie seu perfil e visualize suas avaliações">
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="img/logo.png">
     <!-- CSS -->
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1B4965">
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
@@ -100,9 +114,9 @@ if (isset($_GET['logout'])) {
             <!-- Dashboard Header -->
             <div class="dashboard-header">
                 <div class="profissional-profile">
-                    <img src="<?= $profissional['foto'] ?: 'img/default-avatar.png' ?>" 
-                         alt="<?= htmlspecialchars($profissional['nome']) ?>" 
-                         class="profile-foto">
+                    <img src="<?= $profissional['foto'] ?: 'img/default-avatar.png' ?>"
+                        alt="<?= htmlspecialchars($profissional['nome']) ?>"
+                        class="profile-foto">
                     <div class="profile-info">
                         <h1><?= htmlspecialchars($profissional['nome']) ?></h1>
                         <p class="categoria"><?= htmlspecialchars($profissional['categoria']) ?></p>
@@ -128,7 +142,7 @@ if (isset($_GET['logout'])) {
                         <p>Média de Avaliação</p>
                     </div>
                 </div>
-                
+
                 <div class="stat-card">
                     <div class="stat-icon">
                         <i class="fas fa-comments"></i>
@@ -138,7 +152,7 @@ if (isset($_GET['logout'])) {
                         <p>Total de Avaliações</p>
                     </div>
                 </div>
-                
+
                 <div class="stat-card">
                     <div class="stat-icon">
                         <i class="fas fa-thumbs-up"></i>
@@ -148,7 +162,7 @@ if (isset($_GET['logout'])) {
                         <p>5 Estrelas</p>
                     </div>
                 </div>
-                
+
                 <div class="stat-card">
                     <div class="stat-icon">
                         <i class="fas fa-thumbs-down"></i>
@@ -219,19 +233,19 @@ if (isset($_GET['logout'])) {
                         <h3>Editar Perfil</h3>
                         <p>Atualize suas informações e foto</p>
                     </a>
-                    
+
                     <a href="minhas_avaliacoes.php" class="action-card">
                         <i class="fas fa-star"></i>
                         <h3>Minhas Avaliações</h3>
                         <p>Veja todas as suas avaliações</p>
                     </a>
-                    
+
                     <a href="estatisticas.php" class="action-card">
                         <i class="fas fa-chart-bar"></i>
                         <h3>Estatísticas</h3>
                         <p>Analise seu desempenho</p>
                     </a>
-                    
+
                     <a href="configuracoes.php" class="action-card">
                         <i class="fas fa-cog"></i>
                         <h3>Configurações</h3>
@@ -266,4 +280,5 @@ if (isset($_GET['logout'])) {
     <script src="js/utils.js"></script>
     <script src="js/main.js"></script>
 </body>
+
 </html>
