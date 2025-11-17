@@ -112,51 +112,34 @@ setlocale(LC_ALL, DEFAULT_LOCALE . '.UTF-8');
 
 // ===== FUNÇÕES DE CONFIGURAÇÃO =====
 
-/**
- * Obtém configuração do sistema
- */
+
 function getConfig($key, $default = null) {
     return defined($key) ? constant($key) : $default;
 }
 
-/**
- * Verifica se está em modo de desenvolvimento
- */
 function isDevelopment() {
     return SITE_ENVIRONMENT === 'development';
 }
 
-/**
- * Verifica se está em modo de produção
- */
+
 function isProduction() {
     return SITE_ENVIRONMENT === 'production';
 }
 
-/**
- * Obtém URL completa do site
- */
 function getSiteUrl($path = '') {
     return rtrim(SITE_URL, '/') . '/' . ltrim($path, '/');
 }
 
-/**
- * Obtém caminho do upload
- */
+
 function getUploadPath($filename = '') {
     return UPLOAD_DIR . ltrim($filename, '/');
 }
 
-/**
- * Obtém URL do upload
- */
+
 function getUploadUrl($filename = '') {
     return getSiteUrl(UPLOAD_DIR . ltrim($filename, '/'));
 }
 
-/**
- * Gera token CSRF
- */
 function generateCSRFToken() {
     if (!isset($_SESSION[CSRF_TOKEN_NAME])) {
         $_SESSION[CSRF_TOKEN_NAME] = bin2hex(random_bytes(32));
@@ -164,16 +147,11 @@ function generateCSRFToken() {
     return $_SESSION[CSRF_TOKEN_NAME];
 }
 
-/**
- * Verifica token CSRF
- */
+
 function verifyCSRFToken($token) {
     return isset($_SESSION[CSRF_TOKEN_NAME]) && hash_equals($_SESSION[CSRF_TOKEN_NAME], $token);
 }
 
-/**
- * Obtém configurações de ambiente
- */
 function getEnvironmentConfig() {
     return [
         'environment' => SITE_ENVIRONMENT,
@@ -184,9 +162,7 @@ function getEnvironmentConfig() {
     ];
 }
 
-/**
- * Carrega configurações específicas do ambiente
- */
+
 function loadEnvironmentConfig() {
     $envFile = __DIR__ . '/../.env.' . SITE_ENVIRONMENT;
     if (file_exists($envFile)) {
@@ -205,6 +181,6 @@ function loadEnvironmentConfig() {
     }
 }
 
-// Carregar configurações do ambiente
+
 loadEnvironmentConfig();
 ?>
