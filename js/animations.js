@@ -21,7 +21,6 @@ class AnimationSystem {
         this.setupTypingEffects();
         
         this.isInitialized = true;
-        console.log('🎬 Sistema de animações inicializado');
     }
 
     // ===== CONFIGURAÇÃO DE ANIMAÇÕES =====
