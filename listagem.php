@@ -2,62 +2,53 @@
 require_once 'config/config.php';
 require_once 'config/database.php';
 
-// Filtro por categoria
-$categoria_filtro = $_GET['categoria'] ?? '';
+$categoria_filtro = trim($_GET['categoria'] ?? '');
 
-// Buscar profissionais
+/**
+ * Sanitiza telefone para uso em tel: e wa.me links (remove tudo que não for dígito ou +)
+ */
+function sanitizePhoneForLink(?string $phone): ?string
+{
+    if (empty($phone)) return null;
+    $phone = trim($phone);
+    $keep_plus = strpos($phone, '+') === 0 ? '+' : '';
+    $digits = preg_replace('/\D+/', '', $phone);
+    return $keep_plus . $digits;
+}
+
 try {
-    if (!empty($categoria_filtro)) {
+    if ($categoria_filtro !== '') {
         $profissionais = dbQuery("
-            SELECT * FROM profissionais 
-            WHERE categoria = ? AND disponivel = 1 
+            SELECT id, nome, categoria, descricao, foto, telefone,
+                   COALESCE(media_avaliacao, 0) AS media_avaliacao,
+                   (SELECT COUNT(*) FROM avaliacoes WHERE profissional_id = profissionais.id) AS total_avaliacoes
+            FROM profissionais
+            WHERE categoria = ? AND disponivel = 1
             ORDER BY media_avaliacao DESC, nome
         ", [$categoria_filtro]);
     } else {
         $profissionais = dbQuery("
-            SELECT * FROM profissionais 
-            WHERE disponivel = 1 
+            SELECT id, nome, categoria, descricao, foto, telefone,
+                   COALESCE(media_avaliacao, 0) AS media_avaliacao,
+                   (SELECT COUNT(*) FROM avaliacoes WHERE profissional_id = profissionais.id) AS total_avaliacoes
+            FROM profissionais
+            WHERE disponivel = 1
             ORDER BY media_avaliacao DESC, nome
         ");
     }
 } catch (Exception $e) {
-    error_log("Erro ao buscar profissionais: " . $e->getMessage());
+    error_log('Erro ao buscar profissionais: ' . $e->getMessage());
     $profissionais = [];
-    $erro = "Erro ao buscar profissionais. Tente novamente." . $e->getMessage();
-    
-}
-
-// Buscar categorias para o filtro
-try {
-    $categorias = dbQuery("
-        SELECT nome, descricao FROM categorias 
-        WHERE ativa = 1 
-        ORDER BY ordem
-    ");
-} catch (Exception $e) {
-    error_log("Erro ao buscar categorias: " . $e->getMessage());
-    $categorias = [];
+    $erro = 'Erro ao buscar profissionais. Tente novamente mais tarde.';
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
     <title>Profissionais - ZelaLar</title>
-    <meta name="description" content="Encontre profissionais qualificados para seus serviços no ZelaLar">
-
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="img/logo.png">
-    <!-- CSS -->
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-    <!-- PWA -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1B4965">
 </head>
 
 <body>
@@ -144,7 +135,7 @@ try {
                         <div class="profissional-card">
                             <div class="profissional-foto">
                                 <?php if (!empty($profissional['foto'])): ?>
-                                    <img  style="  width: 100%; border-radius:50%; height: 100%; object-fit: cover; display: block;   " src="<?= htmlspecialchars($profissional['foto']) ?>"
+                                    <img style="  width: 100%; border-radius:50%; height: 100%; object-fit: cover; display: block;   " src="<?= htmlspecialchars($profissional['foto']) ?>"
                                         alt="Foto de <?= htmlspecialchars($profissional['nome']) ?>">
                                 <?php else: ?>
                                     <div class="foto-placeholder">
@@ -175,19 +166,31 @@ try {
                                 <?php endif; ?>
 
                                 <div class="profissional-actions">
-                                    <a href="https://wa.me/55<?= preg_replace('/[^0-9]/', '', $profissional['telefone']) ?>?text=Olá! Gostaria de agendar um serviço com <?= urlencode($profissional['nome']) ?>"
-                                        class="btn btn-whatsapp" target="_blank">
-                                        <i class="fab fa-whatsapp"></i> Contratar
-                                    </a>
+                                    <?php $telefone_link = sanitizePhoneForLink($profissional['telefone'] ?? null); ?>
+                                    <?php $wa_message = urlencode("Olá! Gostaria de agendar um serviço com {$profissional['nome']}"); ?>
 
-                                    <a href="avaliacao.php?id=<?= $profissional['id'] ?>"
+                                    <?php if ($telefone_link): ?>
+                                        <a href="https://wa.me/<?= rawurlencode(ltrim($telefone_link, '+')) ?>?text=<?= $wa_message ?>"
+                                            class="btn btn-whatsapp" target="_blank" rel="noopener noreferrer">
+                                            <i class="fab fa-whatsapp"></i> Contratar
+                                        </a>
+
+                                        <a href="tel:<?= htmlspecialchars($telefone_link) ?>"
+                                            class="btn btn-phone">
+                                            <i class="fas fa-phone"></i> Ligar
+                                        </a>
+                                    <?php else: ?>
+                                        <button class="btn btn-whatsapp" disabled title="Telefone não disponível">
+                                            <i class="fab fa-whatsapp"></i> Contratar
+                                        </button>
+                                        <button class="btn btn-phone" disabled title="Telefone não disponível">
+                                            <i class="fas fa-phone"></i> Ligar
+                                        </button>
+                                    <?php endif; ?>
+
+                                    <a href="avaliacao.php?profissional_id=<?= urlencode($profissional['id']) ?>"
                                         class="btn btn-secondary">
                                         <i class="fas fa-star"></i> Avaliar
-                                    </a>
-
-                                    <a href="tel:<?= htmlspecialchars($profissional['telefone']) ?>"
-                                        class="btn btn-phone">
-                                        <i class="fas fa-phone"></i> Ligar
                                     </a>
                                 </div>
                             </div>
@@ -256,6 +259,10 @@ try {
     <!-- Scripts -->
     <script src="js/utils.js"></script>
     <script src="js/main.js"></script>
+    <!-- Mensagens animadas por PHP -->
+    <?php if (!empty($erro)): ?>
+    <script>Utils && Utils.showNotification('<?= htmlspecialchars($erro) ?>','error');</script>
+    <?php endif; ?>
 </body>
 
 </html>

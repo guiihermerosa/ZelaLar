@@ -296,7 +296,9 @@ try {
     <!-- Scripts -->
     <script src="js/utils.js"></script>
     <script src="js/main.js"></script>
-
+<?php if (!empty($mensagem)): ?>
+<script>Utils && Utils.showNotification('<?= htmlspecialchars($mensagem) ?>','<?= $tipo_mensagem==='erro'?'error':'success' ?>');</script>
+<?php endif; ?>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             Utils.initPhoneMask();
