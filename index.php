@@ -4,10 +4,9 @@ require_once 'config/database.php';
 
 // Buscar estatísticas do sistema
 try {
-    $db = getDatabase();
-    $totalProfissionais = $db->fetchValue("SELECT COUNT(*) FROM profissionais");
-    $totalCategorias = $db->fetchValue("SELECT COUNT(DISTINCT categoria) FROM profissionais");
-    $topCategorias = $db->query("SELECT categoria, COUNT(*) as total FROM profissionais GROUP BY categoria ORDER BY total DESC LIMIT 5");
+    $totalProfissionais = dbFetchValue("SELECT COUNT(*) FROM profissionais");
+    $totalCategorias = dbFetchValue("SELECT COUNT(DISTINCT categoria) FROM profissionais");
+    $topCategorias = dbQuery("SELECT categoria, COUNT(*) as total FROM profissionais GROUP BY categoria ORDER BY total DESC LIMIT 5");
 } catch (Exception $e) {
     $totalProfissionais = 0;
     $totalCategorias = 0;
@@ -17,13 +16,14 @@ try {
 
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZelaLar - Conectando Profissionais e Clientes no Interior de São Paulo</title>
     <meta name="description" content="Encontre os melhores profissionais de CFTV, construção, manutenção e muito mais no interior de São Paulo. Agende serviços com segurança e qualidade.">
     <meta name="keywords" content="profissionais, interior SP, CFTV, pedreiro, pintor, encanador, eletricista, jardinagem, serviços">
-    
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="<?php echo getConfig('SITE_URL'); ?>">
@@ -42,11 +42,12 @@ try {
     <link rel="stylesheet" href="css/style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Preload de recursos críticos -->
     <link rel="preload" href="css/style.css" as="style">
     <link rel="preload" href="js/main.js" as="script">
 </head>
+
 <body>
     <!-- Loading Screen -->
     <div id="loading-screen" class="loading-screen">
@@ -68,17 +69,19 @@ try {
                         <img src="img/logo_nome.png" alt="ZelaLar - Profissionais de Qualidade" class="logo-image">
                     </a>
                 </div>
-                
+
                 <nav class="nav" id="main-nav">
-                    <a href="#inicio" class="nav-link active">Início</a>
+                    <a href="<?= site_url() ?>" class="nav-link active">Início</a>
                     <a href="#categorias" class="nav-link">Categorias</a>
                     <a href="#como-funciona" class="nav-link">Como Funciona</a>
                     <a href="#sobre" class="nav-link">Sobre</a>
-                    <a href="listagem.php" class="nav-link">Profissionais</a>
-                    <a href="profissionais.php" class="nav-link">Cadastrar</a>
-                    <a href="login.php" class="nav-link">Login</a>
+                    <a href="<?= site_url('clientes') ?>" class="nav-link">Login Cliente</a>
+                    <a href="<?= site_url('clientes/cadastro') ?>" class="nav-link">Cadastro Cliente</a>
+                    <a href="<?= site_url('admin') ?>" class="nav-link">Admin</a>
+                    <a href="<?= site_url('profissionais') ?>" class="nav-link">Profissionais</a>
+                        
                 </nav>
-                
+
                 <div class="header-actions">
                     <a href="tel:<?php echo getConfig('CONTACT_PHONE'); ?>" class="btn-phone-header">
                         <i class="fas fa-phone"></i>
@@ -103,11 +106,11 @@ try {
             <div class="hero-content">
                 <div class="hero-text">
                     <h1 class="hero-title">
-                        Encontre o <span class="highlight">Profissional Ideal</span> 
+                        Encontre o <span class="highlight">Profissional Ideal</span>
                         para seu Projeto
                     </h1>
                     <p class="hero-subtitle">
-                        Conectamos você aos melhores profissionais do interior de São Paulo. 
+                        Conectamos você aos melhores profissionais do interior de São Paulo.
                         CFTV, construção, manutenção e muito mais com qualidade e confiança.
                     </p>
                     <div class="hero-stats">
@@ -153,7 +156,7 @@ try {
                 </div>
             </div>
         </div>
-        
+
         <!-- Scroll Indicator -->
         <div class="scroll-indicator">
             <div class="scroll-arrow"></div>
@@ -168,7 +171,7 @@ try {
                 <h2 class="section-title">Nossas Categorias</h2>
                 <p class="section-subtitle">Encontre profissionais especializados em diversas áreas</p>
             </div>
-            
+
             <div class="categories-grid">
                 <div class="category-card" data-category="CFTV">
                     <div class="category-icon">
@@ -185,8 +188,8 @@ try {
                         <a href="listagem.php?categoria=CFTV" class="btn-category">
                             Ver Profissionais
                         </a>
-                        <a href="https://wa.me/<?php echo getConfig('CONTACT_WHATSAPP'); ?>?text=Olá! Gostaria de agendar um serviço de CFTV" 
-                           class="btn-whatsapp-category" target="_blank">
+                        <a href="https://wa.me/<?php echo getConfig('CONTACT_WHATSAPP'); ?>?text=Olá! Gostaria de agendar um serviço de CFTV"
+                            class="btn-whatsapp-category" target="_blank">
                             <i class="fab fa-whatsapp"></i>
                         </a>
                     </div>
@@ -207,8 +210,8 @@ try {
                         <a href="listagem.php?categoria=Pedreiro" class="btn-category">
                             Ver Profissionais
                         </a>
-                        <a href="https://wa.me/<?php echo getConfig('CONTACT_WHATSAPP'); ?>?text=Olá! Gostaria de agendar um serviço de Pedreiro" 
-                           class="btn-whatsapp-category" target="_blank">
+                        <a href="https://wa.me/<?php echo getConfig('CONTACT_WHATSAPP'); ?>?text=Olá! Gostaria de agendar um serviço de Pedreiro"
+                            class="btn-whatsapp-category" target="_blank">
                             <i class="fab fa-whatsapp"></i>
                         </a>
                     </div>
@@ -229,8 +232,8 @@ try {
                         <a href="listagem.php?categoria=Pintor" class="btn-category">
                             Ver Profissionais
                         </a>
-                        <a href="https://wa.me/<?php echo getConfig('CONTACT_WHATSAPP'); ?>?text=Olá! Gostaria de agendar um serviço de Pintor" 
-                           class="btn-whatsapp-category" target="_blank">
+                        <a href="https://wa.me/<?php echo getConfig('CONTACT_WHATSAPP'); ?>?text=Olá! Gostaria de agendar um serviço de Pintor"
+                            class="btn-whatsapp-category" target="_blank">
                             <i class="fab fa-whatsapp"></i>
                         </a>
                     </div>
@@ -251,8 +254,8 @@ try {
                         <a href="listagem.php?categoria=Encanador" class="btn-category">
                             Ver Profissionais
                         </a>
-                        <a href="https://wa.me/<?php echo getConfig('CONTACT_WHATSAPP'); ?>?text=Olá! Gostaria de agendar um serviço de Encanador" 
-                           class="btn-whatsapp-category" target="_blank">
+                        <a href="https://wa.me/<?php echo getConfig('CONTACT_WHATSAPP'); ?>?text=Olá! Gostaria de agendar um serviço de Encanador"
+                            class="btn-whatsapp-category" target="_blank">
                             <i class="fab fa-whatsapp"></i>
                         </a>
                     </div>
@@ -273,8 +276,8 @@ try {
                         <a href="listagem.php?categoria=Eletricista" class="btn-category">
                             Ver Profissionais
                         </a>
-                        <a href="https://wa.me/<?php echo getConfig('CONTACT_WHATSAPP'); ?>?text=Olá! Gostaria de agendar um serviço de Eletricista" 
-                           class="btn-whatsapp-category" target="_blank">
+                        <a href="https://wa.me/<?php echo getConfig('CONTACT_WHATSAPP'); ?>?text=Olá! Gostaria de agendar um serviço de Eletricista"
+                            class="btn-whatsapp-category" target="_blank">
                             <i class="fab fa-whatsapp"></i>
                         </a>
                     </div>
@@ -295,8 +298,8 @@ try {
                         <a href="listagem.php?categoria=Jardinagem" class="btn-category">
                             Ver Profissionais
                         </a>
-                        <a href="https://wa.me/<?php echo getConfig('CONTACT_WHATSAPP'); ?>?text=Olá! Gostaria de agendar um serviço de Jardinagem" 
-                           class="btn-whatsapp-category" target="_blank">
+                        <a href="https://wa.me/<?php echo getConfig('CONTACT_WHATSAPP'); ?>?text=Olá! Gostaria de agendar um serviço de Jardinagem"
+                            class="btn-whatsapp-category" target="_blank">
                             <i class="fab fa-whatsapp"></i>
                         </a>
                     </div>
@@ -312,7 +315,7 @@ try {
                 <h2 class="section-title">Como Funciona</h2>
                 <p class="section-subtitle">Processo simples e seguro para encontrar profissionais</p>
             </div>
-            
+
             <div class="steps-grid">
                 <div class="step-card">
                     <div class="step-number">1</div>
@@ -322,7 +325,7 @@ try {
                     <h3>Busque</h3>
                     <p>Escolha a categoria de serviço que você precisa</p>
                 </div>
-                
+
                 <div class="step-card">
                     <div class="step-number">2</div>
                     <div class="step-icon">
@@ -331,7 +334,7 @@ try {
                     <h3>Compare</h3>
                     <p>Veja perfis, avaliações e preços dos profissionais</p>
                 </div>
-                
+
                 <div class="step-card">
                     <div class="step-number">3</div>
                     <div class="step-icon">
@@ -340,7 +343,7 @@ try {
                     <h3>Agende</h3>
                     <p>Entre em contato direto via WhatsApp ou telefone</p>
                 </div>
-                
+
                 <div class="step-card">
                     <div class="step-number">4</div>
                     <div class="step-icon">
@@ -360,11 +363,11 @@ try {
                 <div class="about-text">
                     <h2>Sobre o ZelaLar</h2>
                     <p class="about-description">
-                        O ZelaLar nasceu da necessidade de conectar profissionais qualificados 
-                        aos moradores do interior de São Paulo. Nossa missão é facilitar o 
+                        O ZelaLar nasceu da necessidade de conectar profissionais qualificados
+                        aos moradores do interior de São Paulo. Nossa missão é facilitar o
                         encontro entre quem precisa de serviços e quem pode oferecer com qualidade.
                     </p>
-                    
+
                     <div class="about-features">
                         <div class="feature-item">
                             <i class="fas fa-shield-alt"></i>
@@ -373,7 +376,7 @@ try {
                                 <p>Todos os profissionais passam por processo de verificação</p>
                             </div>
                         </div>
-                        
+
                         <div class="feature-item">
                             <i class="fas fa-map-marker-alt"></i>
                             <div>
@@ -381,7 +384,7 @@ try {
                                 <p>Focamos no interior de São Paulo para melhor atendimento</p>
                             </div>
                         </div>
-                        
+
                         <div class="feature-item">
                             <i class="fas fa-headset"></i>
                             <div>
@@ -391,7 +394,7 @@ try {
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="about-visual">
                     <div class="about-image">
                         <div class="image-overlay">
@@ -414,7 +417,7 @@ try {
                 <h2 class="section-title">O que Dizem Nossos Clientes</h2>
                 <p class="section-subtitle">Depoimentos de quem já usou nossos serviços</p>
             </div>
-            
+
             <div class="testimonials-slider" id="testimonials-slider">
                 <div class="testimonial-card">
                     <div class="testimonial-content">
@@ -437,7 +440,7 @@ try {
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="testimonial-card">
                     <div class="testimonial-content">
                         <p>"O sistema de CFTV instalado superou minhas expectativas. Profissional muito atencioso e competente."</p>
@@ -459,7 +462,7 @@ try {
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="testimonial-card">
                     <div class="testimonial-content">
                         <p>"Pintor muito profissional! Trabalhou com cuidado e deixou minha casa linda. Recomendo!"</p>
@@ -482,7 +485,7 @@ try {
                     </div>
                 </div>
             </div>
-            
+
             <div class="testimonials-nav">
                 <button class="nav-btn prev" id="prev-testimonial">
                     <i class="fas fa-chevron-left"></i>
@@ -519,11 +522,11 @@ try {
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                                         <div class="footer-logo">
-                         <img src="img/logo_nome.png" alt="ZelaLar - Profissionais de Qualidade" class="footer-logo-image">
-                     </div>
+                    <div class="footer-logo">
+                        <img src="img/logo_nome.png" alt="ZelaLar - Profissionais de Qualidade" class="footer-logo-image">
+                    </div>
                     <p class="footer-description">
-                        Conectando profissionais qualificados aos moradores do interior de São Paulo. 
+                        Conectando profissionais qualificados aos moradores do interior de São Paulo.
                         Qualidade, confiança e satisfação garantida.
                     </p>
                     <div class="social-links">
@@ -533,7 +536,7 @@ try {
                         <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
                     </div>
                 </div>
-                
+
                 <div class="footer-section">
                     <h4>Links Rápidos</h4>
                     <ul class="footer-links">
@@ -545,7 +548,7 @@ try {
                         <li><a href="profissionais.php">Cadastrar</a></li>
                     </ul>
                 </div>
-                
+
                 <div class="footer-section">
                     <h4>Categorias</h4>
                     <ul class="footer-links">
@@ -557,7 +560,7 @@ try {
                         <li><a href="listagem.php?categoria=Jardinagem">Jardinagem</a></li>
                     </ul>
                 </div>
-                
+
                 <div class="footer-section">
                     <h4>Contato</h4>
                     <div class="contact-info">
@@ -580,7 +583,7 @@ try {
                     </div>
                 </div>
             </div>
-            
+
             <div class="footer-bottom">
                 <div class="footer-bottom-content">
                     <p>&copy; 2024 ZelaLar. Todos os direitos reservados.</p>
@@ -596,8 +599,8 @@ try {
 
     <!-- WhatsApp Float Button -->
     <div class="whatsapp-float" id="whatsapp-float">
-        <a href="https://wa.me/<?php echo getConfig('CONTACT_WHATSAPP'); ?>?text=Olá! Gostaria de saber mais sobre os serviços do ZelaLar" 
-           target="_blank" class="whatsapp-link">
+        <a href="https://wa.me/<?php echo getConfig('CONTACT_WHATSAPP'); ?>?text=Olá! Gostaria de saber mais sobre os serviços do ZelaLar"
+            target="_blank" class="whatsapp-link">
             <i class="fab fa-whatsapp"></i>
         </a>
         <div class="whatsapp-tooltip">
@@ -615,4 +618,5 @@ try {
     <script src="js/particles.js"></script>
     <script src="js/animations.js"></script>
 </body>
+
 </html>
