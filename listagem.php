@@ -5,60 +5,67 @@ require_once 'config/database.php';
 // Filtro por categoria
 $categoria_filtro = $_GET['categoria'] ?? '';
 
+// Inicializar banco de dados
+$db = getDatabase();
+
+// Buscar categorias para o filtro
+try {
+    $resultado = $db->query("
+        SELECT nome, descricao FROM categorias 
+        WHERE ativa = 1 
+        ORDER BY ordem
+    ");
+    $categorias = is_array($resultado) ? $resultado : [];
+} catch (Exception $e) {
+    error_log("Erro ao buscar categorias: " . $e->getMessage());
+    $categorias = [];
+}
+
 // Buscar profissionais
 try {
-    $db = getDatabase();
-    
     if (!empty($categoria_filtro)) {
         $profissionais = $db->query("
             SELECT * FROM profissionais 
             WHERE categoria = ? AND disponivel = 1 
-            ORDER BY media_avaliacao DESC, nome
-        ")->fetchAll();
+            ORDER BY avaliacao DESC, nome
+        ", [$categoria_filtro]);
     } else {
         $profissionais = $db->query("
             SELECT * FROM profissionais 
             WHERE disponivel = 1 
-            ORDER BY media_avaliacao DESC, nome
-        ")->fetchAll();
+            ORDER BY avaliacao DESC, nome
+        ");
+    }
+    if (!is_array($profissionais)) {
+        $profissionais = [];
     }
 } catch (Exception $e) {
     error_log("Erro ao buscar profissionais: " . $e->getMessage());
     $profissionais = [];
     $erro = "Erro ao buscar profissionais. Tente novamente.";
 }
-
-// Buscar categorias para o filtro
-try {
-    $categorias = $db->query("
-        SELECT nome, descricao FROM categorias 
-        WHERE ativa = 1 
-        ORDER BY ordem
-    ")->fetchAll();
-} catch (Exception $e) {
-    error_log("Erro ao buscar categorias: " . $e->getMessage());
-    $categorias = [];
-}
 ?>
 
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profissionais - ZelaLar</title>
     <meta name="description" content="Encontre profissionais qualificados para seus serviços no ZelaLar">
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="img/logo.png">
     <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="./Styles/index.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1B4965">
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
@@ -95,8 +102,8 @@ try {
                         <select id="categoria" name="categoria" onchange="this.form.submit()">
                             <option value="">Todas as categorias</option>
                             <?php foreach ($categorias as $cat): ?>
-                                <option value="<?= htmlspecialchars($cat['nome']) ?>" 
-                                        <?= ($categoria_filtro == $cat['nome']) ? 'selected' : '' ?>>
+                                <option value="<?= htmlspecialchars($cat['nome']) ?>"
+                                    <?= ($categoria_filtro == $cat['nome']) ? 'selected' : '' ?>>
                                     <?= htmlspecialchars($cat['nome']) ?>
                                 </option>
                             <?php endforeach; ?>
@@ -106,7 +113,7 @@ try {
                         <i class="fas fa-filter"></i> Filtrar
                     </button>
                 </form>
-                
+
                 <div class="filter-actions">
                     <a href="profissionais.php" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Cadastrar Profissional
@@ -143,49 +150,49 @@ try {
                         <div class="profissional-card">
                             <div class="profissional-foto">
                                 <?php if (!empty($profissional['foto'])): ?>
-                                    <img src="<?= htmlspecialchars($profissional['foto']) ?>" 
-                                         alt="Foto de <?= htmlspecialchars($profissional['nome']) ?>">
+                                    <img src="<?= htmlspecialchars($profissional['foto']) ?>"
+                                        alt="Foto de <?= htmlspecialchars($profissional['nome']) ?>">
                                 <?php else: ?>
                                     <div class="foto-placeholder">
                                         <i class="fas fa-user"></i>
                                     </div>
                                 <?php endif; ?>
                             </div>
-                            
+
                             <div class="profissional-info">
                                 <h3><?= htmlspecialchars($profissional['nome']) ?></h3>
                                 <div class="categoria-badge">
                                     <?= htmlspecialchars($profissional['categoria']) ?>
                                 </div>
-                                
+
                                 <!-- Avaliação -->
                                 <div class="avaliacao-info">
                                     <div class="estrelas">
                                         <?php for ($i = 1; $i <= 5; $i++): ?>
-                                            <i class="fas fa-star <?= $i <= $profissional['media_avaliacao'] ? 'ativa' : '' ?>"></i>
+                                            <i class="fas fa-star <?= $i <= round($profissional['avaliacao']) ? 'ativa' : '' ?>"></i>
                                         <?php endfor; ?>
                                     </div>
-                                    <span class="nota"><?= number_format($profissional['media_avaliacao'], 1) ?></span>
+                                    <span class="nota"><?= number_format($profissional['avaliacao'], 1) ?></span>
                                     <span class="total">(<?= $profissional['total_avaliacoes'] ?> avaliações)</span>
                                 </div>
-                                
+
                                 <?php if (!empty($profissional['descricao'])): ?>
                                     <p class="descricao"><?= htmlspecialchars($profissional['descricao']) ?></p>
                                 <?php endif; ?>
-                                
+
                                 <div class="profissional-actions">
-                                    <a href="https://wa.me/55<?= preg_replace('/[^0-9]/', '', $profissional['telefone']) ?>?text=Olá! Gostaria de agendar um serviço com <?= urlencode($profissional['nome']) ?>" 
-                                       class="btn btn-whatsapp" target="_blank">
+                                    <a href="https://wa.me/55<?= preg_replace('/[^0-9]/', '', $profissional['telefone']) ?>?text=Olá! Gostaria de agendar um serviço com <?= urlencode($profissional['nome']) ?>"
+                                        class="btn btn-whatsapp" target="_blank">
                                         <i class="fab fa-whatsapp"></i> Contratar
                                     </a>
-                                    
-                                    <a href="avaliacao.php?id=<?= $profissional['id'] ?>" 
-                                       class="btn btn-secondary">
+
+                                    <a href="avaliacao.php?id=<?= $profissional['id'] ?>"
+                                        class="btn btn-secondary">
                                         <i class="fas fa-star"></i> Avaliar
                                     </a>
-                                    
-                                    <a href="tel:<?= htmlspecialchars($profissional['telefone']) ?>" 
-                                       class="btn btn-phone">
+
+                                    <a href="tel:<?= htmlspecialchars($profissional['telefone']) ?>"
+                                        class="btn btn-phone">
                                         <i class="fas fa-phone"></i> Ligar
                                     </a>
                                 </div>
@@ -247,8 +254,8 @@ try {
     </footer>
 
     <!-- WhatsApp Float -->
-    <a href="https://wa.me/<?= getConfig('CONTACT_WHATSAPP') ?>?text=Olá! Preciso de ajuda para encontrar um profissional." 
-       class="whatsapp-float" target="_blank">
+    <a href="https://wa.me/<?= getConfig('CONTACT_WHATSAPP') ?>?text=Olá! Preciso de ajuda para encontrar um profissional."
+        class="whatsapp-float" target="_blank">
         <i class="fab fa-whatsapp"></i>
     </a>
 
@@ -256,4 +263,5 @@ try {
     <script src="js/utils.js"></script>
     <script src="js/main.js"></script>
 </body>
+
 </html>

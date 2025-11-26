@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = trim($_POST['email'] ?? '');
     $senha = $_POST['senha'] ?? '';
     $confirmar_senha = $_POST['confirmar_senha'] ?? '';
-    
+
     // Validação básica
     if (empty($nome) || empty($telefone) || empty($categoria) || empty($senha)) {
         $mensagem = 'Por favor, preencha todos os campos obrigatórios.';
@@ -33,14 +33,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (!is_dir($upload_dir)) {
                 mkdir($upload_dir, 0777, true);
             }
-            
+
             $file_extension = strtolower(pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION));
             $allowed_extensions = getConfig('UPLOAD_ALLOWED_TYPES');
-            
+
             if (in_array($file_extension, $allowed_extensions)) {
                 $foto_name = uniqid() . '.' . $file_extension;
                 $foto_path = $upload_dir . $foto_name;
-                
+
                 if (move_uploaded_file($_FILES['foto']['tmp_name'], $foto_path)) {
                     // Foto enviada com sucesso
                 } else {
@@ -52,12 +52,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $tipo_mensagem = 'erro';
             }
         }
-        
+
         // Se não houve erro na foto, inserir no banco
         if (empty($mensagem)) {
             try {
                 $db = getDatabase();
-                
+
                 // Verificar se o telefone já existe
                 $existe = dbFetchOne("SELECT id FROM profissionais WHERE telefone = ?", [$telefone]);
                 if ($existe) {
@@ -66,17 +66,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 } else {
                     // Hash da senha
                     $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
-                    
-                    $db->execute(
+
+                    $resultado = $db->execute(
                         "INSERT INTO profissionais (nome, telefone, categoria, descricao, foto, senha, email) VALUES (?, ?, ?, ?, ?, ?, ?)",
                         [$nome, $telefone, $categoria, $descricao, $foto_path, $senha_hash, $email]
                     );
-                    
-                    $mensagem = 'Profissional cadastrado com sucesso! Agora você pode fazer login para acessar seu perfil.';
-                    $tipo_mensagem = 'sucesso';
-                    
-                    // Limpar campos do formulário
-                    $nome = $telefone = $categoria = $descricao = $email = '';
+
+                    if ($resultado['success']) {
+                        $mensagem = 'Profissional cadastrado com sucesso! Agora você pode fazer login para acessar seu perfil.';
+                        $tipo_mensagem = 'sucesso';
+
+                        // Limpar campos do formulário
+                        $nome = $telefone = $categoria = $descricao = $email = '';
+                    } else {
+                        $mensagem = 'Erro ao cadastrar. Tente novamente.';
+                        $tipo_mensagem = 'erro';
+                    }
                 }
             } catch (Exception $e) {
                 error_log("Erro ao cadastrar profissional: " . $e->getMessage());
@@ -91,10 +96,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 $categorias = [];
 try {
     $db = getDatabase();
-    $categorias = $db->query("SELECT nome, descricao FROM categorias WHERE ativa = 1 ORDER BY ordem")->fetchAll();
+    $resultado = $db->query("SELECT nome, descricao FROM categorias WHERE ativa = 1 ORDER BY ordem");
+    
+    // A query já retorna um array pronto, não precisa de fetchAll()
+    if (is_array($resultado) && !empty($resultado)) {
+        $categorias = $resultado;
+    }
 } catch (Exception $e) {
     error_log("Erro ao buscar categorias: " . $e->getMessage());
-    // Categorias padrão caso não consiga buscar do banco
+    
     $categorias = [
         ['nome' => 'CFTV', 'descricao' => 'Sistemas de Câmeras e Segurança'],
         ['nome' => 'Pedreiro', 'descricao' => 'Construção e Reformas'],
@@ -110,22 +120,24 @@ try {
 
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastrar Profissional - ZelaLar</title>
     <meta name="description" content="Cadastre-se como profissional no ZelaLar e comece a receber solicitações de serviços">
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="img/logo.png">
     <!-- CSS -->
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="./Styles/profissionais.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1B4965">
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
@@ -167,15 +179,15 @@ try {
                     <div class="form-row">
                         <div class="form-group">
                             <label for="nome">Nome Completo *</label>
-                            <input type="text" id="nome" name="nome" 
-                                   value="<?= htmlspecialchars($nome ?? '') ?>" required>
+                            <input type="text" id="nome" name="nome"
+                                value="<?= htmlspecialchars($nome ?? '') ?>" required>
                         </div>
 
                         <div class="form-group">
                             <label for="telefone">Telefone/WhatsApp *</label>
-                            <input type="tel" id="telefone" name="telefone" 
-                                   value="<?= htmlspecialchars($telefone ?? '') ?>" 
-                                   placeholder="(11) 99999-9999" required>
+                            <input type="tel" id="telefone" name="telefone"
+                                value="<?= htmlspecialchars($telefone ?? '') ?>"
+                                placeholder="(11) 99999-9999" required>
                         </div>
                     </div>
 
@@ -185,8 +197,8 @@ try {
                             <select id="categoria" name="categoria" required>
                                 <option value="">Selecione uma categoria</option>
                                 <?php foreach ($categorias as $cat): ?>
-                                    <option value="<?= htmlspecialchars($cat['nome']) ?>" 
-                                            <?= (isset($categoria) && $categoria == $cat['nome']) ? 'selected' : '' ?>>
+                                    <option value="<?= htmlspecialchars($cat['nome']) ?>"
+                                        <?= (isset($categoria) && $categoria == $cat['nome']) ? 'selected' : '' ?>>
                                         <?= htmlspecialchars($cat['nome']) ?>
                                     </option>
                                 <?php endforeach; ?>
@@ -195,30 +207,30 @@ try {
 
                         <div class="form-group">
                             <label for="email">Email (opcional)</label>
-                            <input type="email" id="email" name="email" 
-                                   value="<?= htmlspecialchars($email ?? '') ?>" 
-                                   placeholder="seu@email.com">
+                            <input type="email" id="email" name="email"
+                                value="<?= htmlspecialchars($email ?? '') ?>"
+                                placeholder="seu@email.com">
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label for="descricao">Breve Descrição</label>
-                        <textarea id="descricao" name="descricao" rows="4" 
-                                  placeholder="Descreva suas habilidades, experiência e especialidades..."><?= htmlspecialchars($descricao ?? '') ?></textarea>
+                        <textarea id="descricao" name="descricao" rows="4"
+                            placeholder="Descreva suas habilidades, experiência e especialidades..."><?= htmlspecialchars($descricao ?? '') ?></textarea>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label for="senha">Senha *</label>
-                            <input type="password" id="senha" name="senha" 
-                                   placeholder="Digite uma senha para acessar sua conta" required>
+                            <input type="password" id="senha" name="senha"
+                                placeholder="Digite uma senha para acessar sua conta" required>
                             <small>Esta senha será usada para você acessar seu perfil e ver suas avaliações.</small>
                         </div>
 
                         <div class="form-group">
                             <label for="confirmar_senha">Confirmar Senha *</label>
-                            <input type="password" id="confirmar_senha" name="confirmar_senha" 
-                                   placeholder="Confirme sua senha" required>
+                            <input type="password" id="confirmar_senha" name="confirmar_senha"
+                                placeholder="Confirme sua senha" required>
                         </div>
                     </div>
 
@@ -240,8 +252,8 @@ try {
                     </div>
 
                     <div class="form-info">
-                        <p><i class="fas fa-info-circle"></i> 
-                           Após o cadastro, você poderá fazer login para gerenciar seu perfil e ver as avaliações dos clientes.</p>
+                        <p><i class="fas fa-info-circle"></i>
+                            Após o cadastro, você poderá fazer login para gerenciar seu perfil e ver as avaliações dos clientes.</p>
                     </div>
                 </form>
             </div>
@@ -280,7 +292,7 @@ try {
     <!-- Scripts -->
     <script src="js/utils.js"></script>
     <script src="js/main.js"></script>
-    
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             Utils.initPhoneMask();
@@ -288,4 +300,5 @@ try {
         });
     </script>
 </body>
+
 </html>

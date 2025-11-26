@@ -87,7 +87,7 @@ self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
     
-    // Ignorar requisições não-GET
+   
     if (request.method !== 'GET') {
         return;
     }

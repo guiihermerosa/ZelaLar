@@ -1,4 +1,9 @@
 <?php
+// DEBUG TEMPORÁRIO: mostrar erros completos (remover em produção)
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 require_once 'config/config.php';
 require_once 'config/database.php';
 
@@ -27,21 +32,23 @@ if ($_POST) {
     $cliente_telefone = trim($_POST['cliente_telefone'] ?? '');
     $nota = (int)($_POST['nota'] ?? 0);
     $comentario = trim($_POST['comentario'] ?? '');
-    
+
     if (empty($cliente_nome) || empty($cliente_telefone) || $nota < 1 || $nota > 5) {
         $mensagem = 'Por favor, preencha todos os campos corretamente.';
         $tipo_mensagem = 'erro';
     } else {
         try {
-            $db = getDatabase();
-            $stmt = $db->prepare("INSERT INTO avaliacoes (profissional_id, cliente_nome, cliente_telefone, nota, comentario) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute([$profissional_id, $cliente_nome, $cliente_telefone, $nota, $comentario]);
-            
-            // Atualizar média do profissional
-            $stmt = $db->prepare("
+            // Inserir avaliação usando dbExecute (evita chamada a ->prepare() inexistente)
+            dbExecute(
+                "INSERT INTO avaliacoes (profissional_id, cliente_nome, cliente_telefone, nota, comentario, status, data_criacao) VALUES (?, ?, ?, ?, ?, 'pendente', NOW())",
+                [$profissional_id, $cliente_nome, $cliente_telefone, $nota, $comentario]
+            );
+
+            // Atualizar média do profissional usando dbExecute
+            dbExecute("
                 UPDATE profissionais 
-                SET media_avaliacao = (
-                    SELECT AVG(nota) 
+                SET avaliacao = (
+                    SELECT COALESCE(AVG(nota), 0) 
                     FROM avaliacoes 
                     WHERE profissional_id = ? AND status = 'aprovada'
                 ),
@@ -51,12 +58,10 @@ if ($_POST) {
                     WHERE profissional_id = ? AND status = 'aprovada'
                 )
                 WHERE id = ?
-            ");
-            $stmt->execute([$profissional_id, $profissional_id, $profissional_id]);
-            
+            ", [$profissional_id, $profissional_id, $profissional_id]);
+
             $mensagem = 'Obrigado pela sua avaliação! Ela será revisada e publicada em breve.';
             $tipo_mensagem = 'sucesso';
-            
         } catch (Exception $e) {
             error_log("Erro ao salvar avaliação: " . $e->getMessage());
             $mensagem = 'Erro ao salvar avaliação. Tente novamente.';
@@ -68,22 +73,24 @@ if ($_POST) {
 
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Avaliar <?= htmlspecialchars($profissional['nome']) ?> - ZelaLar</title>
     <meta name="description" content="Avalie o serviço prestado por <?= htmlspecialchars($profissional['nome']) ?>">
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="img/logo.png">
     <!-- CSS -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#1B4965">
 </head>
+
 <body>
     <!-- Header -->
     <header class="header">
@@ -120,19 +127,19 @@ if ($_POST) {
             <div class="avaliacao-container">
                 <div class="avaliacao-header">
                     <div class="profissional-info">
-                        <img src="<?= $profissional['foto'] ?: 'img/default-avatar.png' ?>" 
-                             alt="<?= htmlspecialchars($profissional['nome']) ?>" 
-                             class="profissional-foto">
+                        <img src="<?= $profissional['foto'] ?: 'img/default-avatar.png' ?>"
+                            alt="<?= htmlspecialchars($profissional['nome']) ?>"
+                            class="profissional-foto">
                         <div class="profissional-detalhes">
                             <h1><?= htmlspecialchars($profissional['nome']) ?></h1>
                             <p class="categoria"><?= htmlspecialchars($profissional['categoria']) ?></p>
                             <div class="avaliacao-atual">
                                 <div class="estrelas">
                                     <?php for ($i = 1; $i <= 5; $i++): ?>
-                                        <i class="fas fa-star <?= $i <= $profissional['media_avaliacao'] ? 'ativa' : '' ?>"></i>
+                                        <i class="fas fa-star <?= $i <= round($profissional['avaliacao']) ? 'ativa' : '' ?>"></i>
                                     <?php endfor; ?>
                                 </div>
-                                <span class="nota"><?= number_format($profissional['media_avaliacao'], 1) ?></span>
+                                <span class="nota"><?= number_format($profissional['avaliacao'], 1) ?></span>
                                 <span class="total">(<?= $profissional['total_avaliacoes'] ?> avaliações)</span>
                             </div>
                         </div>
@@ -148,24 +155,24 @@ if ($_POST) {
                 <form class="avaliacao-form" method="POST">
                     <div class="form-group">
                         <label for="cliente_nome">Seu Nome *</label>
-                        <input type="text" id="cliente_nome" name="cliente_nome" 
-                               value="<?= htmlspecialchars($_POST['cliente_nome'] ?? '') ?>" 
-                               required>
+                        <input type="text" id="cliente_nome" name="cliente_nome"
+                            value="<?= htmlspecialchars($_POST['cliente_nome'] ?? '') ?>"
+                            required>
                     </div>
 
                     <div class="form-group">
                         <label for="cliente_telefone">Seu Telefone *</label>
-                        <input type="tel" id="cliente_telefone" name="cliente_telefone" 
-                               value="<?= htmlspecialchars($_POST['cliente_telefone'] ?? '') ?>" 
-                               required>
+                        <input type="tel" id="cliente_telefone" name="cliente_telefone"
+                            value="<?= htmlspecialchars($_POST['cliente_telefone'] ?? '') ?>"
+                            required>
                     </div>
 
                     <div class="form-group">
                         <label>Avaliação *</label>
                         <div class="rating-input">
                             <?php for ($i = 5; $i >= 1; $i--): ?>
-                                <input type="radio" id="star<?= $i ?>" name="nota" value="<?= $i ?>" 
-                                       <?= ($_POST['nota'] ?? 0) == $i ? 'checked' : '' ?>>
+                                <input type="radio" id="star<?= $i ?>" name="nota" value="<?= $i ?>"
+                                    <?= ($_POST['nota'] ?? 0) == $i ? 'checked' : '' ?>>
                                 <label for="star<?= $i ?>">
                                     <i class="fas fa-star"></i>
                                 </label>
@@ -175,8 +182,8 @@ if ($_POST) {
 
                     <div class="form-group">
                         <label for="comentario">Comentário (opcional)</label>
-                        <textarea id="comentario" name="comentario" rows="4" 
-                                  placeholder="Conte como foi sua experiência com o profissional..."><?= htmlspecialchars($_POST['comentario'] ?? '') ?></textarea>
+                        <textarea id="comentario" name="comentario" rows="4"
+                            placeholder="Conte como foi sua experiência com o profissional..."><?= htmlspecialchars($_POST['comentario'] ?? '') ?></textarea>
                     </div>
 
                     <div class="form-actions">
@@ -215,24 +222,24 @@ if ($_POST) {
     </footer>
 
     <!-- WhatsApp Float -->
-    <a href="https://wa.me/<?= getConfig('CONTACT_WHATSAPP') ?>?text=Olá! Preciso de ajuda com o ZelaLar." 
-       class="whatsapp-float" target="_blank">
+    <a href="https://wa.me/<?= getConfig('CONTACT_WHATSAPP') ?>?text=Olá! Preciso de ajuda com o ZelaLar."
+        class="whatsapp-float" target="_blank">
         <i class="fab fa-whatsapp"></i>
     </a>
 
     <!-- Scripts -->
     <script src="js/utils.js"></script>
     <script src="js/main.js"></script>
-    
+
     <script>
         // Inicializar máscara de telefone
         document.addEventListener('DOMContentLoaded', function() {
             Utils.initPhoneMask();
-            
+
             // Adicionar classe ativa nas estrelas ao clicar
             const ratingInputs = document.querySelectorAll('.rating-input input');
             const ratingLabels = document.querySelectorAll('.rating-input label');
-            
+
             ratingInputs.forEach((input, index) => {
                 input.addEventListener('change', function() {
                     ratingLabels.forEach((label, labelIndex) => {
@@ -247,4 +254,5 @@ if ($_POST) {
         });
     </script>
 </body>
+
 </html>

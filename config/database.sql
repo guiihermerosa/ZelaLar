@@ -34,7 +34,9 @@ CREATE TABLE IF NOT EXISTS profissionais (
     senha VARCHAR(255),
     email VARCHAR(100),
     data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    ultima_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ultima_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    ultimo_login TIMESTAMP NULL,
+    ativo BOOLEAN DEFAULT TRUE
 );
 
 -- Tabela de avaliações
@@ -49,6 +51,34 @@ CREATE TABLE IF NOT EXISTS avaliacoes (
     status ENUM('pendente', 'aprovada', 'rejeitada') DEFAULT 'pendente',
     FOREIGN KEY (profissional_id) REFERENCES profissionais(id) ON DELETE CASCADE
 );
+
+-- Tabela de contatos recebidos
+CREATE TABLE IF NOT EXISTS contatos_recebidos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    profissional_id INT NOT NULL,
+    cliente_nome VARCHAR(100),
+    cliente_telefone VARCHAR(20),
+    cliente_email VARCHAR(100),
+    mensagem TEXT,
+    data_contato TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ip_cliente VARCHAR(45),
+    FOREIGN KEY (profissional_id) REFERENCES profissionais(id) ON DELETE CASCADE,
+    INDEX idx_profissional (profissional_id),
+    INDEX idx_data (data_contato)
+);
+
+-- Tabela de importação de profissionais
+CREATE TABLE IF NOT EXISTS importacoes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome_arquivo VARCHAR(255),
+    total_registros INT,
+    registros_importados INT,
+    registros_erro INT,
+    status ENUM('processando', 'concluída', 'erro') DEFAULT 'processando',
+    data_importacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    detalhes_erro TEXT
+);
+
 
 -- Inserir categorias padrão
 INSERT INTO categorias (nome, descricao, icone, ordem) VALUES
@@ -75,10 +105,6 @@ INSERT INTO avaliacoes (profissional_id, cliente_nome, cliente_telefone, nota, c
 (3, 'Roberto Alves', '+5511333333333', 5, 'Resolveu meu problema rapidamente. Muito bom!', 'aprovada');
 
 -- Atualizar estatísticas dos profissionais
-UPDATE profissionais SET 
-    media_avaliacao = (SELECT AVG(nota) FROM avaliacoes WHERE profissional_id = id AND status = 'aprovada'),
-    total_avaliacoes = (SELECT COUNT(*) FROM avaliacoes WHERE profissional_id = id AND status = 'aprovada')
-WHERE id IN (1, 2, 3);
 
 -- Criar índices para melhor performance
 CREATE INDEX idx_profissionais_categoria ON profissionais(categoria);
@@ -87,3 +113,5 @@ CREATE INDEX idx_profissionais_disponivel ON profissionais(disponivel);
 CREATE INDEX idx_avaliacoes_profissional ON avaliacoes(profissional_id);
 CREATE INDEX idx_avaliacoes_status ON avaliacoes(status);
 CREATE INDEX idx_avaliacoes_data ON avaliacoes(data_avaliacao);
+CREATE INDEX idx_contatos_profissional ON contatos_recebidos(profissional_id);
+CREATE INDEX idx_contatos_data ON contatos_recebidos(data_contato);
