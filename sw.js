@@ -41,16 +41,13 @@ const CACHE_STRATEGIES = {
 
 // ===== INSTALAÇÃO =====
 self.addEventListener('install', (event) => {
-    console.log('🚀 ZelaLar Service Worker instalando...');
     
     event.waitUntil(
         caches.open(STATIC_CACHE)
             .then(cache => {
-                console.log('📦 Cache estático aberto');
                 return cache.addAll(STATIC_FILES);
             })
             .then(() => {
-                console.log('✅ Cache estático preenchido');
                 return self.skipWaiting();
             })
             .catch(error => {
@@ -61,7 +58,6 @@ self.addEventListener('install', (event) => {
 
 // ===== ATIVAÇÃO =====
 self.addEventListener('activate', (event) => {
-    console.log('🔄 ZelaLar Service Worker ativando...');
     
     event.waitUntil(
         caches.keys()
@@ -69,14 +65,12 @@ self.addEventListener('activate', (event) => {
                 return Promise.all(
                     cacheNames.map(cacheName => {
                         if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
-                            console.log('🗑️ Removendo cache antigo:', cacheName);
                             return caches.delete(cacheName);
                         }
                     })
                 );
             })
             .then(() => {
-                console.log('✅ Cache limpo com sucesso');
                 return self.clients.claim();
             })
     );
@@ -155,8 +149,6 @@ async function handleDynamicResource(request) {
         
         return networkResponse;
     } catch (error) {
-        console.log('🌐 Rede indisponível, tentando cache...');
-        
         // Fallback para cache
         const cachedResponse = await caches.match(request);
         if (cachedResponse) {
@@ -309,7 +301,6 @@ async function getOfflinePage() {
 
 // ===== SINCRONIZAÇÃO EM BACKGROUND =====
 self.addEventListener('sync', (event) => {
-    console.log('🔄 Sincronização em background:', event.tag);
     
     if (event.tag === 'background-sync') {
         event.waitUntil(performBackgroundSync());
@@ -325,7 +316,6 @@ async function performBackgroundSync() {
             await syncData(data);
         }
         
-        console.log('✅ Sincronização em background concluída');
     } catch (error) {
         console.error('❌ Erro na sincronização em background:', error);
     }
@@ -338,12 +328,10 @@ async function getPendingData() {
 
 async function syncData(data) {
     // Implementar lógica de sincronização
-    console.log('Sincronizando dados:', data);
 }
 
 // ===== NOTIFICAÇÕES PUSH =====
 self.addEventListener('push', (event) => {
-    console.log('📱 Notificação push recebida');
     
     if (event.data) {
         const data = event.data.json();
@@ -363,7 +351,6 @@ self.addEventListener('push', (event) => {
 });
 
 self.addEventListener('notificationclick', (event) => {
-    console.log('👆 Notificação clicada');
     
     event.notification.close();
     
@@ -393,7 +380,6 @@ function handleNotificationAction(action, data) {
 
 // ===== MENSAGENS =====
 self.addEventListener('message', (event) => {
-    console.log('💬 Mensagem recebida:', event.data);
     
     switch (event.data.type) {
         case 'SKIP_WAITING':
@@ -419,7 +405,6 @@ async function clearAllCaches() {
     await Promise.all(
         cacheNames.map(name => caches.delete(name))
     );
-    console.log('🗑️ Todos os caches foram limpos');
 }
 
 async function updateCache(files) {
@@ -427,7 +412,6 @@ async function updateCache(files) {
     await Promise.all(
         files.map(file => cache.add(file))
     );
-    console.log('🔄 Cache atualizado com novos arquivos');
 }
 
 // ===== MONITORAMENTO DE PERFORMANCE =====
@@ -467,7 +451,6 @@ async function handleRequest(request) {
 
 // ===== LOGS DE DEBUG =====
 if (self.location.hostname === 'localhost') {
-    console.log('🔧 ZelaLar Service Worker em modo desenvolvimento');
     
     // Expor funções para debug
     self.debug = {

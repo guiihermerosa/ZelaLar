@@ -25,7 +25,6 @@ class ZelaLar {
         this.initLazyLoading();
         this.initPerformanceOptimizations();
         
-        console.log('🚀 ZelaLar inicializado com sucesso!');
     }
 
     // ===== LOADING SCREEN =====
@@ -676,9 +675,14 @@ class ZelaLar {
     }
 }
 
+// Garantia de apenas um ZelaLar global
+if (!window._zelaLarInstance) {
+  window._zelaLarInstance = new ZelaLar();
+}
+
 // ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', () => {
-    new ZelaLar();
+    // new ZelaLar(); // This line is now redundant as ZelaLar is a singleton
 });
 
 // ===== SERVICE WORKER REGISTRATION =====
@@ -686,10 +690,8 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js')
             .then(registration => {
-                console.log('SW registered: ', registration);
             })
             .catch(registrationError => {
-                console.log('SW registration failed: ', registrationError);
             });
     });
 }
@@ -709,7 +711,6 @@ window.addEventListener('beforeinstallprompt', (e) => {
             deferredPrompt.prompt();
                 deferredPrompt.userChoice.then((choiceResult) => {
                     if (choiceResult.outcome === 'accepted') {
-                        console.log('Usuário aceitou a instalação');
                     }
                     deferredPrompt = null;
                 });
@@ -728,7 +729,7 @@ class Analytics {
         }
         
         // Fallback para console
-        console.log(`Analytics: ${category} - ${action}${label ? ` - ${label}` : ''}`);
+        // console.log(`Analytics: ${category} - ${action}${label ? ` - ${label}` : ''}`);
     }
 
     static trackPageView(page) {
@@ -761,7 +762,7 @@ window.addEventListener('load', () => {
         const perfData = performance.getEntriesByType('navigation')[0];
         const loadTime = perfData.loadEventEnd - perfData.loadEventStart;
         
-        console.log(`Page load time: ${loadTime}ms`);
+        // console.log(`Page load time: ${loadTime}ms`);
         Analytics.trackEvent('Performance', 'Page Load', `${loadTime}ms`);
     }
 });

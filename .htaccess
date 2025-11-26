@@ -1,5 +1,25 @@
 # .htaccess - Versão corrigida para XAMPP Windows
 RewriteEngine On
+RewriteBase /ZelaLar/
+
+# ---- Rotas Amigáveis ----
+# Cliente
+RewriteRule ^clientes/?$ clientes/login_cliente.php [L,QSA]
+RewriteRule ^clientes/cadastro/?$ clientes/cadastro_cliente.php [L,QSA]
+RewriteRule ^clientes/dashboard/?$ clientes/dashboard_cliente.php [L,QSA]
+
+# Admin
+RewriteRule ^admin/?$ admin/login_admin.php [L,QSA]
+RewriteRule ^admin/dashboard/?$ admin/dashboard_admin.php [L,QSA]
+RewriteRule ^admin/usuarios/?$ admin/usuarios.php [L,QSA]
+RewriteRule ^admin/avaliacoes/?$ admin/avaliacoes.php [L,QSA]
+
+# Profissionais
+RewriteRule ^profissionais/?$ profissionais.php [L,QSA]
+RewriteRule ^dashboard/?$ dashboard.php [L,QSA]
+
+# ---- Redirecionamento opcional (desativado para evitar loops) ----
+# Caso precise redirecionar arquivos .php antigos, adicione regras específicas aqui.
 
 # Forçar HTTPS (opcional - comentar se não usar SSL)
 # RewriteCond %{HTTPS} off
