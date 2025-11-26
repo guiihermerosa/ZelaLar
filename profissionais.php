@@ -5,7 +5,7 @@ require_once 'config/database.php';
 $mensagem = '';
 $tipo_mensagem = '';
 
-
+// Processar formulário quando enviado
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nome = trim($_POST['nome'] ?? '');
     $telefone = trim($_POST['telefone'] ?? '');
@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $senha = $_POST['senha'] ?? '';
     $confirmar_senha = $_POST['confirmar_senha'] ?? '';
 
-   
+    // Validação básica
     if (empty($nome) || empty($telefone) || empty($categoria) || empty($senha)) {
         $mensagem = 'Por favor, preencha todos os campos obrigatórios.';
         $tipo_mensagem = 'erro';
@@ -53,12 +53,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
 
-        
+        // Se não houve erro na foto, inserir no banco
         if (empty($mensagem)) {
             try {
                 $db = getDatabase();
 
-                
+                // Verificar se o telefone já existe
                 $existe = dbFetchOne("SELECT id FROM profissionais WHERE telefone = ?", [$telefone]);
                 if ($existe) {
                     $mensagem = 'Este telefone já está cadastrado.';
@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $mensagem = 'Profissional cadastrado com sucesso! Agora você pode fazer login para acessar seu perfil.';
                     $tipo_mensagem = 'sucesso';
 
-                   
+                    // Limpar campos do formulário
                     $nome = $telefone = $categoria = $descricao = $email = '';
                 }
             } catch (Exception $e) {
@@ -87,14 +87,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-
+// Buscar categorias do banco
 $categorias = [];
 try {
     $db = getDatabase();
     $categorias = $db->query("SELECT nome, descricao FROM categorias WHERE ativa = 1 ORDER BY ordem");
 } catch (Exception $e) {
     error_log("Erro ao buscar categorias: " . $e->getMessage());
-   
+    // Categorias padrão caso não consiga buscar do banco
     $categorias = [
         ['nome' => 'CFTV', 'descricao' => 'Sistemas de Câmeras e Segurança'],
         ['nome' => 'Pedreiro', 'descricao' => 'Construção e Reformas'],
