@@ -38,33 +38,39 @@ if ($_POST) {
         $tipo_mensagem = 'erro';
     } else {
         try {
-            // Inserir avaliação usando dbExecute (evita chamada a ->prepare() inexistente)
+            // Inserir avaliação (não referenciar coluna inexistente)
             dbExecute(
-                "INSERT INTO avaliacoes (profissional_id, cliente_nome, cliente_telefone, nota, comentario, status, data_criacao) VALUES (?, ?, ?, ?, ?, 'pendente', NOW())",
+                "INSERT INTO avaliacoes (profissional_id, cliente_nome, cliente_telefone, nota, comentario, status) VALUES (?, ?, ?, ?, ?, 'pendente')",
                 [$profissional_id, $cliente_nome, $cliente_telefone, $nota, $comentario]
             );
 
-            // Atualizar média do profissional usando dbExecute
-            dbExecute("
-                UPDATE profissionais 
-                SET avaliacao = (
-                    SELECT COALESCE(AVG(nota), 0) 
-                    FROM avaliacoes 
-                    WHERE profissional_id = ? AND status = 'aprovada'
-                ),
-                total_avaliacoes = (
-                    SELECT COUNT(*) 
-                    FROM avaliacoes 
-                    WHERE profissional_id = ? AND status = 'aprovada'
-                )
-                WHERE id = ?
-            ", [$profissional_id, $profissional_id, $profissional_id]);
+            // Atualizar média e total aprovados do profissional
+            dbExecute(
+                "UPDATE profissionais 
+                 SET avaliacao = (
+                     SELECT COALESCE(AVG(nota), 0) 
+                     FROM avaliacoes 
+                     WHERE profissional_id = ? AND status = 'aprovada'
+                 ),
+                 total_avaliacoes = (
+                     SELECT COUNT(*) 
+                     FROM avaliacoes 
+                     WHERE profissional_id = ? AND status = 'aprovada'
+                 )
+                 WHERE id = ?",
+                [$profissional_id, $profissional_id, $profissional_id]
+            );
 
             $mensagem = 'Obrigado pela sua avaliação! Ela será revisada e publicada em breve.';
             $tipo_mensagem = 'sucesso';
         } catch (Exception $e) {
+            // Log detalhado e mensagem amigável (em dev exibe a mensagem real)
             error_log("Erro ao salvar avaliação: " . $e->getMessage());
-            $mensagem = 'Erro ao salvar avaliação. Tente novamente.';
+            if (isDevelopment()) {
+                $mensagem = 'Erro ao salvar avaliação: ' . $e->getMessage();
+            } else {
+                $mensagem = 'Erro ao salvar avaliação. Tente novamente.';
+            }
             $tipo_mensagem = 'erro';
         }
     }
