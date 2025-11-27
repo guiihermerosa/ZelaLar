@@ -5,7 +5,6 @@ require_once 'config/database.php';
 require_once 'classes/ImportadorCSV.php';
 
 // Verificar se é admin (você pode implementar validação real depois)
-session_start();
 
 $mensagem = '';
 $tipo_mensagem = '';
@@ -333,7 +332,7 @@ Maria Santos;11 98888-8888;Pintor;maria@email.com;Av. Paulista 456;São Paulo;SP
                     <strong>Formato esperado:</strong> Arquivo CSV com separador de ponto e vírgula (;)
                 </div>
                 
-                <form method="POST" enctype="multipart/form-data" id="form-upload">
+                <form  action="./classes/ImportadorCSV.php" method="POST" enctype="multipart/form-data" id="form-upload">
                     <div class="drop-zone" id="drop-zone">
                         <i class="fas fa-cloud-upload-alt"></i>
                         <p><strong>Arraste o arquivo aqui</strong></p>
@@ -689,12 +688,7 @@ Maria Santos;11 98888-8888;Pintor;maria@email.com;Av. Paulista 456;São Paulo;SP
             </h1>
         </header>
         
-        <?php if ($mensagem): ?>
-            <div class="alert alert-<?php echo $tipo_mensagem === 'sucesso' ? 'sucesso' : 'erro'; ?>">
-                <i class="fas fa-<?php echo $tipo_mensagem === 'sucesso' ? 'check-circle' : 'exclamation-circle'; ?>"></i>
-                <?php echo htmlspecialchars($mensagem); ?>
-            </div>
-        <?php endif; ?>
+       
         
         <div class="cards">
             <!-- Card de Upload -->
@@ -711,7 +705,7 @@ Maria Santos;11 98888-8888;Pintor;maria@email.com;Av. Paulista 456;São Paulo;SP
                     <strong>Formato esperado:</strong> Arquivo CSV com separador de ponto e vírgula (;)
                 </div>
                 
-                <form method="POST" enctype="multipart/form-data" id="form-upload">
+                <form action="./classes/ImportadorCSV.php" method="POST" enctype="multipart/form-data" id="form-upload">
                     <div class="drop-zone" id="drop-zone">
                         <i class="fas fa-cloud-upload-alt"></i>
                         <p><strong>Arraste o arquivo aqui</strong></p>
