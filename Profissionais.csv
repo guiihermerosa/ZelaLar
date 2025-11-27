@@ -1,0 +1,59 @@
+nome;telefone;categoria;email
+Ana Silva;11990000001;Eletricista;ana.silva1@exemplo.com
+Bruno Souza;21990000002;Encanador;bruno.souza2@exemplo.com
+Carlos Pereira;31990000003;Pintor;carlos.pereira3@exemplo.com
+Daniela Costa;41990000004;Marceneiro;daniela.costa4@exemplo.com
+Eduardo Oliveira;51990000005;Jardineiro;eduardo.oliveira5@exemplo.com
+Fernanda Rodrigues;85990000006;Diarista;fernanda.rodrigues6@exemplo.com
+Gustavo Lima;81990000007;Pedreiro;gustavo.lima7@exemplo.com
+Helena Gomes;62990000008;Serralheiro;helena.gomes8@exemplo.com
+Igor Ribeiro;61990000009;Técnico de Informática;igor.ribeiro9@exemplo.com
+Julia Alves;71990000010;Montador de Móveis;julia.alves10@exemplo.com
+Kleber Melo;11990000011;Eletricista;kleber.melo11@exemplo.com
+Larissa Martins;21990000012;Encanador;larissa.martins12@exemplo.com
+Marcos Barbosa;31990000013;Pintor;marcos.barbosa13@exemplo.com
+Natália Dias;41990000014;Marceneiro;natalia.dias14@exemplo.com
+Otávio Freitas;51990000015;Jardineiro;otavio.freitas15@exemplo.com
+Patrícia Cardoso;85990000016;Diarista;patricia.cardoso16@exemplo.com
+Rogério Cavalcante;81990000017;Pedreiro;rogerio.cavalcante17@exemplo.com
+Sabrina Ferreira;62990000018;Serralheiro;sabrina.ferreira18@exemplo.com
+Thiago Moreira;61990000019;Técnico de Informática;thiago.moreira19@exemplo.com
+Vanessa Araujo;71990000020;Montador de Móveis;vanessa.araujo20@exemplo.com
+Yuri Silva;11990000021;Eletricista;yuri.silva21@exemplo.com
+Paula Souza;21990000022;Encanador;paula.souza22@exemplo.com
+Renato Pereira;31990000023;Pintor;renato.pereira23@exemplo.com
+Sara Costa;41990000024;Marceneiro;sara.costa24@exemplo.com
+Diego Oliveira;51990000025;Jardineiro;diego.oliveira25@exemplo.com
+Beatriz Rodrigues;85990000026;Diarista;beatriz.rodrigues26@exemplo.com
+Hugo Lima;81990000027;Pedreiro;hugo.lima27@exemplo.com
+Leonardo Gomes;62990000028;Serralheiro;leonardo.gomes28@exemplo.com
+Camila Ribeiro;61990000029;Técnico de Informática;camila.ribeiro29@exemplo.com
+Rafael Alves;71990000030;Montador de Móveis;rafael.alves30@exemplo.com
+Luan Melo;11990000031;Eletricista;luan.melo31@exemplo.com
+Mariana Martins;21990000032;Encanador;mariana.martins32@exemplo.com
+Catarina Barbosa;31990000033;Pintor;catarina.barbosa33@exemplo.com
+Lucas Dias;41990000034;Marceneiro;lucas.dias34@exemplo.com
+João Freitas;51990000035;Jardineiro;joao.freitas35@exemplo.com
+Mateus Cardoso;85990000036;Diarista;mateus.cardoso36@exemplo.com
+Bianca Cavalcante;81990000037;Pedreiro;bianca.cavalcante37@exemplo.com
+Simone Ferreira;62990000038;Serralheiro;simone.ferreira38@exemplo.com
+Letícia Moreira;61990000039;Técnico de Informática;leticia.moreira39@exemplo.com
+Fábio Araujo;71990000040;Montador de Móveis;fabio.araujo40@exemplo.com
+Gisele Silva;11990000041;Eletricista;gisele.silva41@exemplo.com
+Vitor Souza;21990000042;Encanador;vitor.souza42@exemplo.com
+Viviane Pereira;31990000043;Pintor;viviane.pereira43@exemplo.com
+Pedro Costa;41990000044;Marceneiro;pedro.costa44@exemplo.com
+Aline Oliveira;51990000045;Jardineiro;aline.oliveira45@exemplo.com
+Robson Rodrigues;85990000046;Diarista;robson.rodrigues46@exemplo.com
+Tainá Lima;81990000047;Pedreiro;taina.lima47@exemplo.com
+Sandro Gomes;62990000048;Serralheiro;sandro.gomes48@exemplo.com
+Priscila Ribeiro;61990000049;Técnico de Informática;priscila.ribeiro49@exemplo.com
+Igor Alves;71990000050;Montador de Móveis;igor.alves50@exemplo.com
+Larissa Melo;11990000051;Eletricista;larissa.melo51@exemplo.com
+Marcos Martins;21990000052;Encanador;marcos.martins52@exemplo.com
+Julia Barbosa;31990000053;Pintor;julia.barbosa53@exemplo.com
+Rafael Dias;41990000054;Marceneiro;rafael.dias54@exemplo.com
+Ana Freitas;51990000055;Jardineiro;ana.freitas55@exemplo.com
+Bruno Cardoso;85990000056;Diarista;bruno.cardoso56@exemplo.com
+Carlos Cavalcante;81990000057;Pedreiro;carlos.cavalcante57@exemplo.com
+Daniela Ferreira;62990000058;Serralheiro;daniela.ferreira58@exemplo.com
