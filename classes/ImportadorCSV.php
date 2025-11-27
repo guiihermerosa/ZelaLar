@@ -1,4 +1,9 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../config/database.php';
 
 
 class ImportadorCSV {
@@ -19,7 +24,7 @@ class ImportadorCSV {
             }
             
             // Validar extensão
-            $extensao = strtolower(pathinfo($arquivo_path, PATHINFO_EXTENSION));
+            $extensao = strtolower(pathinfo($_FILES['arquivo']['name'], PATHINFO_EXTENSION));
             if ($extensao !== 'csv') {
                 return ['sucesso' => false, 'mensagem' => 'Arquivo deve ser CSV'];
             }
@@ -159,59 +164,54 @@ class ImportadorCSV {
         return ['sucesso' => true];
     }
     
-    /**
-     * Insere profissional no banco
-     */
+ 
     private function inserirProfissional($dados, $senha_padrao) {
-        try {
-            $telefone = preg_replace('/\D/', '', $dados['telefone']);
-            $telefone_formatado = preg_replace('/(\d{2})(\d{5})(\d{4})/', '+55$1$2$3', $telefone);
-            
-            $senha_hash = password_hash($senha_padrao, PASSWORD_BCRYPT);
-            
-            $resultado = dbExecute(
-                "INSERT INTO profissionais 
-                (nome, telefone, categoria, email, endereco, cidade, estado, cep, descricao, senha, disponivel)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)",
-                [
-                    trim($dados['nome']),
-                    $telefone_formatado,
-                    trim($dados['categoria']),
-                    strtolower(trim($dados['email'])),
-                    isset($dados['endereco']) ? trim($dados['endereco']) : '',
-                    isset($dados['cidade']) ? trim($dados['cidade']) : '',
-                    isset($dados['estado']) ? strtoupper(trim($dados['estado'])) : '',
-                    isset($dados['cep']) ? trim($dados['cep']) : '',
-                    isset($dados['descricao']) ? trim($dados['descricao']) : '',
-                    $senha_hash
-                ]
-            );
-            
-            return [
-                'sucesso' => $resultado['success'],
-                'mensagem' => 'Profissional inserido com sucesso'
-            ];
-        } catch (Exception $e) {
-            error_log('Erro ao inserir profissional: ' . $e->getMessage());
-            return ['sucesso' => false, 'mensagem' => $e->getMessage()];
-        }
-    }
-    
-    /**
-     * Cria registro de importação
-     */
-    private function criarRegistroImportacao($nome_arquivo) {
+    try {
+        $telefone = preg_replace('/\D/', '', $dados['telefone']);
+        $telefone_formatado = preg_replace('/(\d{2})(\d{5})(\d{4})/', '+55$1$2$3', $telefone);
+
+        $senha_hash = password_hash($senha_padrao, PASSWORD_BCRYPT);
+
         $resultado = dbExecute(
-            "INSERT INTO importacoes (nome_arquivo, status) VALUES (?, 'processando')",
-            [basename($nome_arquivo)]
+            "INSERT INTO profissionais 
+            (nome, telefone, categoria, email, endereco, cidade, estado, cep, descricao, senha, disponivel)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)",
+            [
+                trim($dados['nome']),
+                $telefone_formatado,
+                trim($dados['categoria']),
+                strtolower(trim($dados['email'])),
+                $dados['endereco'] ?? '',
+                $dados['cidade'] ?? '',
+                strtoupper($dados['estado'] ?? ''),
+                $dados['cep'] ?? '',
+                $dados['descricao'] ?? '',
+                $senha_hash
+            ]
         );
-        
-        return $resultado['lastInsertId'];
+
+        return [
+            'sucesso' => $resultado > 0,
+            'mensagem' => 'Profissional inserido com sucesso'
+        ];
+    } catch (Exception $e) {
+        error_log('Erro ao inserir profissional: ' . $e->getMessage());
+        return ['sucesso' => false, 'mensagem' => $e->getMessage()];
     }
+}
     
-    /**
-     * Atualiza registro de importação
-     */
+    
+   private function criarRegistroImportacao($nome_arquivo) {
+    $pdo = getDatabase();
+    $stmt = $pdo->prepare(
+        "INSERT INTO importacoes (nome_arquivo, status) VALUES (?, 'processando')"
+    );
+    $stmt->execute([basename($nome_arquivo)]);
+
+    return $pdo->lastInsertId();
+}
+    
+  
     private function atualizarRegistroImportacao($importacao_id, $importados, $erros_count, $erros_detalhes) {
         $status = $erros_count === 0 ? 'concluída' : 'concluída';
         $detalhes = implode('; ', array_slice($erros_detalhes, 0, 10));
@@ -222,9 +222,7 @@ class ImportadorCSV {
         );
     }
     
-    /**
-     * Obtém histórico de importações
-     */
+   
     public function obterHistorico($limite = 10) {
         try {
             return dbQuery(
@@ -239,3 +237,28 @@ class ImportadorCSV {
 }
 
 ?>
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+            <?php
+            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['arquivo'])) {
+                $importador = new ImportadorCSV();
+                $resultado = $importador->importarArquivo($_FILES['arquivo']['tmp_name']);
+                
+                if ($resultado['sucesso']) {
+                    echo "<p style='color: green;'>{$resultado['mensagem']}</p>";
+                } else {
+                    echo "<p style='color: red;'>{$resultado['mensagem']}</p>";
+                }
+            }
+            ?>
+
+</body>
+</html>

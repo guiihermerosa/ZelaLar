@@ -8,9 +8,7 @@ class Profissional {
         $this->db = getDatabase();
     }
     
-    /**
-     * Autentica profissional com telefone e senha
-     */
+   
     public function autenticar($telefone, $senha) {
         try {
             $profissional = dbFetchOne(
@@ -43,9 +41,7 @@ class Profissional {
         }
     }
     
-    /**
-     * Obtém avaliações do profissional
-     */
+   
     public function obterAvaliacoes($profissional_id, $pagina = 1, $por_pagina = 10) {
         try {
             $offset = ($pagina - 1) * $por_pagina;
@@ -90,20 +86,18 @@ class Profissional {
         }
     }
     
-    /**
-     * Obtém contatos recebidos
-     */
+   
     public function obterContatos($profissional_id, $pagina = 1, $por_pagina = 15) {
         try {
             $offset = ($pagina - 1) * $por_pagina;
             
-            // Total de contatos
+         
             $total = dbFetchValue(
                 "SELECT COUNT(*) FROM contatos_recebidos WHERE profissional_id = ?",
                 [$profissional_id]
             );
             
-            // Contatos
+            
             $contatos = dbQuery(
                 "SELECT * FROM contatos_recebidos 
                 WHERE profissional_id = ?
@@ -124,9 +118,7 @@ class Profissional {
         }
     }
     
-    /**
-     * Registra novo contato
-     */
+    
     public function registrarContato($profissional_id, $cliente_nome, $cliente_telefone, $cliente_email, $mensagem = '') {
         try {
             $ip_cliente = $_SERVER['REMOTE_ADDR'] ?? 'desconhecido';
@@ -148,9 +140,7 @@ class Profissional {
         }
     }
     
-    /**
-     * Obtém estatísticas do profissional
-     */
+    
     public function obterEstatisticas($profissional_id) {
         try {
             $stats = dbFetchOne(
@@ -172,9 +162,7 @@ class Profissional {
         }
     }
     
-    /**
-     * Atualiza dados do profissional
-     */
+    
     public function atualizar($profissional_id, $dados) {
         try {
             $campos_permitidos = ['nome', 'descricao', 'telefone', 'email', 'endereco', 'cidade', 'estado', 'cep'];

@@ -66,11 +66,9 @@ if ($_POST) {
         } catch (Exception $e) {
             // Log detalhado e mensagem amigável (em dev exibe a mensagem real)
             error_log("Erro ao salvar avaliação: " . $e->getMessage());
-            if (isDevelopment()) {
-                $mensagem = 'Erro ao salvar avaliação: ' . $e->getMessage();
-            } else {
+           
                 $mensagem = 'Erro ao salvar avaliação. Tente novamente.';
-            }
+          
             $tipo_mensagem = 'erro';
         }
     }

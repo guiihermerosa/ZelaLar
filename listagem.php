@@ -10,12 +10,11 @@ $db = getDatabase();
 
 // Buscar categorias para o filtro
 try {
-    $resultado = $db->query("
-        SELECT nome, descricao FROM categorias 
+    $categorias = dbQuery(
+        "SELECT nome, descricao FROM categorias 
         WHERE ativa = 1 
-        ORDER BY ordem
-    ");
-    $categorias = is_array($resultado) ? $resultado : [];
+        ORDER BY ordem"
+    );
 } catch (Exception $e) {
     error_log("Erro ao buscar categorias: " . $e->getMessage());
     $categorias = [];
@@ -24,17 +23,18 @@ try {
 // Buscar profissionais
 try {
     if (!empty($categoria_filtro)) {
-        $profissionais = $db->query("
-            SELECT * FROM profissionais 
+        $profissionais = dbQuery(
+            "SELECT * FROM profissionais 
             WHERE categoria = ? AND disponivel = 1 
-            ORDER BY avaliacao DESC, nome
-        ", [$categoria_filtro]);
+            ORDER BY avaliacao DESC, nome",
+            [$categoria_filtro]
+        );
     } else {
-        $profissionais = $db->query("
-            SELECT * FROM profissionais 
+        $profissionais = dbQuery(
+            "SELECT * FROM profissionais 
             WHERE disponivel = 1 
-            ORDER BY avaliacao DESC, nome
-        ");
+            ORDER BY avaliacao DESC, nome"
+        );
     }
     if (!is_array($profissionais)) {
         $profissionais = [];
