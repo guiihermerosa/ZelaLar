@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $mensagem = 'A senha deve ter pelo menos 6 caracteres.';
         $tipo_mensagem = 'erro';
     } else {
-        // Processar upload de foto
+        
         $foto_path = '';
         if (isset($_FILES['foto']) && $_FILES['foto']['error'] == 0) {
             $upload_dir = getUploadPath();
@@ -67,12 +67,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     
                     $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
 
-                    $resultado = $db->execute(
+                    $linhas_afetadas = dbExecute(
                         "INSERT INTO profissionais (nome, telefone, categoria, descricao, foto, senha, email) VALUES (?, ?, ?, ?, ?, ?, ?)",
                         [$nome, $telefone, $categoria, $descricao, $foto_path, $senha_hash, $email]
                     );
 
-                    if ($resultado['success']) {
+                    if ($linhas_afetadas > 0) {
                         $mensagem = 'Profissional cadastrado com sucesso! Agora você pode fazer login para acessar seu perfil.';
                         $tipo_mensagem = 'sucesso';
 
@@ -95,12 +95,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 // Buscar categorias do banco
 $categorias = [];
 try {
-    $db = getDatabase();
-    $resultado = $db->query("SELECT nome, descricao FROM categorias WHERE ativa = 1 ORDER BY ordem");
+    $categorias = dbQuery(
+        "SELECT nome, descricao FROM categorias WHERE ativa = 1 ORDER BY ordem"
+    );
     
-    
-    if (is_array($resultado) && !empty($resultado)) {
-        $categorias = $resultado;
+    if (!is_array($categorias)) {
+        $categorias = [];
     }
 } catch (Exception $e) {
     error_log("Erro ao buscar categorias: " . $e->getMessage());

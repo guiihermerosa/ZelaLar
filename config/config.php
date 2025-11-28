@@ -89,4 +89,16 @@ function verifyCSRFToken($token) {
     return isset($_SESSION[CSRF_TOKEN_NAME]) && hash_equals($_SESSION[CSRF_TOKEN_NAME], $token);
 }
 
+/**
+ * Retorna o caminho completo do diretório de uploads
+ */
+function getUploadPath(): string {
+    $uploadDir = getConfig('UPLOAD_DIR', 'img/profissionais/');
+    // Garantir que o caminho termine com barra
+    $uploadDir = rtrim($uploadDir, '/') . '/';
+    
+    // Retornar caminho relativo ao diretório raiz do projeto
+    return $uploadDir;
+}
+
 // Segue com outros utilitários principais se forem genuinamente usados.
