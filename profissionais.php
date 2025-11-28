@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $mensagem = 'Este telefone já está cadastrado.';
                     $tipo_mensagem = 'erro';
                 } else {
-                    // Hash da senha
+                    
                     $senha_hash = password_hash($senha, PASSWORD_DEFAULT);
 
                     $resultado = $db->execute(
@@ -98,7 +98,7 @@ try {
     $db = getDatabase();
     $resultado = $db->query("SELECT nome, descricao FROM categorias WHERE ativa = 1 ORDER BY ordem");
     
-    // A query já retorna um array pronto, não precisa de fetchAll()
+    
     if (is_array($resultado) && !empty($resultado)) {
         $categorias = $resultado;
     }
